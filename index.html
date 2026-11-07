@@ -104,7 +104,12 @@
   .glass-btn.active:active { transform: translateY(0); }
   .glass-btn:disabled { color: var(--error-color); }
 
-  .message-box { display: none; text-align: center; font-size: 15px; line-height: 1.5; }
+  .message-box { 
+    display: none; 
+    text-align: center; 
+    font-size: 15px; 
+    line-height: 1.5; 
+  }
   .message-box.error { color: var(--error-color); }
   .message-box.success { color: var(--success-color); }
   .spinner {
@@ -269,6 +274,7 @@
     document.getElementById('form-state').style.display = 'none';
     document.getElementById('error-state').style.display = 'block';
     document.getElementById('error-message').textContent = msg;
+    document.getElementById('error-message').style.display = 'block'; // Исправлено! Теперь ошибка будет видна
   }
 </script>
 </body>
