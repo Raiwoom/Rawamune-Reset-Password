@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rawamune | Сброс пароля</title>
+<style>
+  :root {
+    --bg-body: #0f1419;
+    --bg-input: #1a1f26;
+    --text-main: #e7e9ea;
+    --text-muted: #8b98a5;
+    --border-color: #2a3038;
+    --accent: #1d9bf0;
+    --error-color: #f4212e;
+    --success-color: #00ba7c;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg-body);
+    color: var(--text-main);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .container {
+    width: 100%;
+    max-width: 400px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .title {
+    color: var(--error-color);
+    font-weight: 900;
+    font-size: 26px;
+    text-align: center;
+    margin-bottom: 30px;
+    line-height: 1.3;
+  }
+  .card {
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 30px 24px;
+    width: 100%;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  }
+  input {
+    width: 100%;
+    padding: 16px;
+    background: var(--bg-body);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    color: var(--text-main);
+    font-size: 15px;
+    margin-bottom: 10px;
+    transition: border-color 0.2s;
+  }
+  input:focus { outline: none; border-color: var(--accent); }
+  .error-text {
+    color: var(--error-color);
+    font-size: 12px;
+    margin-top: 6px;
+    padding-left: 10px;
+    display: none;
+  }
+  
+  /* Стеклянная кнопка с красным текстом */
+  .glass-btn {
+    width: 100%;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    color: var(--error-color);
+    font-size: 16px;
+    font-weight: 600;
+    cursor: not-allowed;
+    margin-top: 15px;
+    opacity: 0.35;
+    transition: all 0.25s ease;
+    letter-spacing: 0.3px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 4px 15px rgba(0,0,0,0.2);
+  }
+  .glass-btn.active {
+    opacity: 1;
+    cursor: pointer;
+    background: rgba(244, 33, 46, 0.12);
+    border-color: rgba(244, 33, 46, 0.35);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 4px 20px rgba(244,33,46,0.25);
+  }
+  .glass-btn.active:hover {
+    background: rgba(244, 33, 46, 0.22);
+    border-color: rgba(244, 33, 46, 0.55);
+    transform: translateY(-1px);
+  }
+  .glass-btn.active:active { transform: translateY(0); }
+  .glass-btn:disabled { color: var(--error-color); }
+
+  .message-box { display: none; text-align: center; font-size: 15px; line-height: 1.5; }
+  .message-box.error { color: var(--error-color); }
+  .message-box.success { color: var(--success-color); }
+  .spinner {
+    border: 3px solid rgba(255,255,255,0.1);
+    border-top: 3px solid var(--accent);
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 15px;
+  }
+  @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="title">Rawamune | Сброс пароля 🔑</div>
+  
+  <div class="card" id="loading-state">
+    <div class="spinner"></div>
+    <div style="text-align: center; color: var(--text-muted);">Проверка ссылки...</div>
+  </div>
+
+  <div class="card" id="error-state" style="display: none;">
+    <div class="message-box error" id="error-message"></div>
+  </div>
+
+  <div class="card" id="success-state" style="display: none;">
+    <div class="message-box success">
+      ✅ Пароль успешно изменён!<br><br>
+      Теперь вы можете вернуться в приложение Rawamune и войти с новым паролем.
+    </div>
+  </div>
+
+  <div class="card" id="form-state" style="display: none;">
+    <p style="color: var(--text-muted); font-size: 14px; text-align: center; margin-bottom: 20px;">
+      Аккаунт: <b id="user-email" style="color: var(--text-main);"></b>
+    </p>
+    
+    <input 
+      id="new-password" 
+      type="password" 
+      placeholder="Придумайте новый пароль для учётной записи Rawamune" 
+      oninput="handlePasswordInput()"
+      autocomplete="new-password"
+    >
+    
+    <div id="pass-errors">
+      <div class="error-text err-length">Минимум 8 символов</div>
+      <div class="error-text err-upper">Нужна заглавная буква</div>
+      <div class="error-text err-special">2 спецсимвола</div>
+    </div>
+    
+    <div class="message-box error" id="submit-error" style="margin-top: 10px; font-size: 13px;"></div>
+
+    <button class="glass-btn" id="submit-btn" disabled onclick="resetPassword()">
+      Изменить пароль
+    </button>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getAuth, verifyPasswordResetCode, confirmPasswordReset } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDDOdmsbGcP8ncMQ1sMGiaBSLF-grTehtk",
+    authDomain: "rawamune-messenger.firebaseapp.com",
+    projectId: "rawamune-messenger",
+    storageBucket: "rawamune-messenger.firebasestorage.app",
+    messagingSenderId: "270855834484",
+    appId: "1:270855834484:web:57efe2062a0a2dadf93a21"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  let oobCode = null;
+
+  // Возвращает true, если пароль валиден. Отображает ошибки, если showErrors = true.
+  function checkPassword(pwd, showErrors = false) {
+    const errors = {
+      length: pwd.length < 8,
+      upper: !/[A-Z]/.test(pwd),
+      special: (pwd.match(/[^A-Za-z0-9]/g) || []).length < 2
+    };
+    if (showErrors) {
+      document.querySelector('.err-length').style.display = errors.length ? 'block' : 'none';
+      document.querySelector('.err-upper').style.display = errors.upper ? 'block' : 'none';
+      document.querySelector('.err-special').style.display = errors.special ? 'block' : 'none';
+    }
+    return !errors.length && !errors.upper && !errors.special;
+  }
+
+  // Обработчик ввода: показывает ошибки и активирует/деактивирует кнопку
+  window.handlePasswordInput = () => {
+    const pwd = document.getElementById('new-password').value;
+    const isValid = checkPassword(pwd, true);
+    const btn = document.getElementById('submit-btn');
+    const submitError = document.getElementById('submit-error');
+    submitError.style.display = 'none';
+
+    if (isValid && pwd.length > 0) {
+      btn.classList.add('active');
+      btn.disabled = false;
+    } else {
+      btn.classList.remove('active');
+      btn.disabled = true;
+    }
+  };
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    oobCode = urlParams.get('oobCode');
+
+    if (!oobCode) {
+      showError("Отсутствует код сброса. Пожалуйста, перейдите по ссылке из письма.");
+      return;
+    }
+
+    try {
+      const email = await verifyPasswordResetCode(auth, oobCode);
+      document.getElementById('user-email').textContent = email;
+      document.getElementById('loading-state').style.display = 'none';
+      document.getElementById('form-state').style.display = 'block';
+      document.getElementById('new-password').focus();
+    } catch (e) {
+      console.error(e);
+      showError("Срок действия ссылки истёк или она недействительна. Запросите сброс пароля в приложении заново.");
+    }
+  });
+
+  window.resetPassword = async () => {
+    const pwd = document.getElementById('new-password').value;
+    const submitError = document.getElementById('submit-error');
+    submitError.style.display = 'none';
+
+    if (!checkPassword(pwd, true)) return;
+
+    const btn = document.getElementById('submit-btn');
+    btn.disabled = true;
+    btn.classList.remove('active');
+    btn.textContent = 'Сохранение...';
+
+    try {
+      await confirmPasswordReset(auth, oobCode, pwd);
+      document.getElementById('form-state').style.display = 'none';
+      document.getElementById('success-state').style.display = 'block';
+    } catch (e) {
+      console.error(e);
+      submitError.textContent = "Ошибка: " + (e.message || "Не удалось сменить пароль. Возможно, ссылка устарела.");
+      submitError.style.display = 'block';
+      btn.disabled = false;
+      btn.classList.add('active');
+      btn.textContent = 'Изменить пароль';
+    }
+  };
+
+  function showError(msg) {
+    document.getElementById('loading-state').style.display = 'none';
+    document.getElementById('form-state').style.display = 'none';
+    document.getElementById('error-state').style.display = 'block';
+    document.getElementById('error-message').textContent = msg;
+  }
+</script>
+</body>
+</html>
